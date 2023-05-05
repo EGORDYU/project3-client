@@ -15,6 +15,7 @@ import NotFound from './components/pages/NotFound'
 import StudyMode from './components/pages/StudyMode'
 import './App.css'
 import jwt_decode from 'jwt-decode'
+import { CloudinaryContext, Image } from 'cloudinary-react';
 
 function App() {
 	// the currently logged in user will be stored up here in state
@@ -48,6 +49,7 @@ function App() {
 	}
 
 	return (
+		<CloudinaryContext cloudName={process.env.REACT_APP_CLOUD_NAME}>
 		<Router>
 			<header>
 				<Navbar
@@ -96,6 +98,7 @@ function App() {
 				</Routes>
 			</div>
 		</Router>
+		</CloudinaryContext>
 	);
 }
 

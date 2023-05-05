@@ -3,6 +3,8 @@ import CardForm from "../partials/CardForm";
 import {useState, useEffect} from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import axios from 'axios';
+import { CloudinaryContext } from 'cloudinary-react';
+
 
 export default function Deck(){
   const [cards, setCards] = useState([]);
@@ -62,6 +64,7 @@ export default function Deck(){
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     const token = localStorage.getItem('jwt');
   
     if (!token) {
@@ -70,18 +73,27 @@ export default function Deck(){
     }
   
     try {
-      const response = await axios.post(`${process.env.REACT_APP_SERVER_URL}/api-v1/decks/${id}/flashcards`, {
-        front,
-        back,
-        image,
-        deckId: id,
-      }, {
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
+      const response = await axios.post(
+        `${process.env.REACT_APP_SERVER_URL}/api-v1/decks/${id}/flashcards`,
+        {
+          front,
+          back,
+          image,
+          deckId: id,
         },
-      });
+        {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Upload-Preset': process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET,
+            'X-API-Key': process.env.REACT_APP_CLOUDINARY_API_KEY,
+          },
+        }
+      );
       console.log(`POST response status: ${response.status}`);
+      console.log(image)
+      console.log(`response data 2023`,response.data)
       console.log(`POST response data: ${JSON.stringify(response.data)}`);
       setFront('');
       setBack('');
@@ -91,6 +103,7 @@ export default function Deck(){
       console.log(`Error adding flashcard: ${err.message}`);
     }
   };
+  
   
   
   const handleImageUpload = (event) => {
@@ -107,19 +120,35 @@ export default function Deck(){
   };
   
   const flashCard = cards.map((card) => (
-    <div className="flashcard-container" key={card._id}>
-      <p className="flashcard-container-p flashcard-container-front">Front: {card.front}</p>
-      {card.image && (
-        <img
-          className="flashcard-container-image"
-          src={card.image}
-          alt={`Image for ${card.front}`}
-        />
-      )}
-      <p className="flashcard-container-back flashcard-container-show-back-back">Back: {card.back}</p>
-      <button className="delete-button" onClick={() => deleteFlashcard(card._id)}>Delete</button>
+
+    <div
+      className="flashcard-container"
+      key={card._id}
+      style={
+        card.image
+          ? {
+              backgroundImage: `url(${card.image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }
+          : {}
+      }
+    >
+      <p className="flashcard-container-p flashcard-container-front">
+        Front: {card.front}
+      </p>
+      <p className="flashcard-container-back flashcard-container-show-back-back">
+        Back: {card.back}
+      </p>
+      <button
+        className="delete-button"
+        onClick={() => deleteFlashcard(card._id)}
+      >
+        Delete
+      </button>
     </div>
   ));
+  
   
   
   
@@ -127,6 +156,7 @@ export default function Deck(){
 
   return (
     <>
+    
     <form onSubmit={handleSubmit}>
   <label>
     Front:
@@ -146,8 +176,9 @@ export default function Deck(){
   <button type="submit">Add Flashcard</button>
 </form>
 
-
+<CloudinaryContext cloudName={process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}>
       {flashCard}
+      </CloudinaryContext>
     </>
   );
 }
